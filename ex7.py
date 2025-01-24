@@ -81,6 +81,12 @@ def display_pokemon_list(poke_list):
     """
     Display a list of Pokemon dicts, or a message if empty.
     """
+    if not poke_list:
+        print("There are no Pokemons in this Pokedex that match the criteria.")
+    else:
+        for poke in poke_list:
+            print(f"ID: {poke['ID']}, Name: {poke['Name']}, Type: {poke['Type']}, "
+                  f"HP: {poke['HP']}, Attack: {poke['Attack']}, Can Evolve: {poke['Can Evolve']}")
     pass
 
 
@@ -205,13 +211,24 @@ def add_pokemon_to_owner(owner_node):
     """
     Prompt user for a Pokemon ID, find the data, and add to this owner's pokedex if not duplicate.
     """
+    pokemon_id = input("Enter Pokemon ID to add: ")
+    pokemon = get_poke_dict_by_id(int(pokemon_id))
+    if not pokemon:
+        print(f"ID{pokemon_id}not found in Honen data.")
+        return
+    for existing_pokemon in owner_node["pokedex"]:
+        if existing_pokemon["ID"] == pokemon["ID"]:
+            print(f"Pokemon already in the list. No changes made.")
+            return
+    owner_node["pokedex"].append(pokemon)
+    print(f"Pokemon {pokemon["Name"]} (ID {pokemon_id}) added to {owner_node["name"]}'s Pokedex")
     pass
-
 
 def release_pokemon_by_name(owner_node):
     """
     Prompt user for a Pokemon name, remove it from this owner's pokedex if found.
     """
+
     pass
 
 
@@ -290,6 +307,50 @@ def display_filter_sub_menu(owner_node):
     6) All
     7) Back
     """
+    choice = 0
+    while choice != 7:
+        print("""
+    -- Display Filter Menu --
+    1. Only a certain Type
+    2. Only Evolvable
+    3. Only Attack above __
+    4. Only HP above __
+    5. Only names starting with letter(s)
+    6. All of them!
+    7. Back
+    """)
+        choice = int(input("Your choice: "))
+        filtered_pokedex = []
+
+        match choice:
+            case 1:
+                poke_type = input("Which Type? (e.g. GRASS, WATER): ").strip().lower()
+                filtered_pokedex = [poke for poke in owner_node["pokedex"] if poke["Type"].lower() == poke_type]
+            case 2:
+                filtered_pokedex = [poke for poke in owner_node["pokedex"] if poke["Can Evolve"] == "TRUE"]
+            case 3:
+                attack_threshold = int(input("Enter Attack threshold: "))
+                filtered_pokedex = [poke for poke in owner_node["pokedex"] if poke["Attack"] > attack_threshold]
+            case 4:
+                hp_threshold = int(input("Enter HP threshold: "))
+                filtered_pokedex = [poke for poke in owner_node["pokedex"] if poke["HP"] > hp_threshold]
+            case 5:
+                starting_letters = input("Starting letter(s): ").strip().lower()
+                filtered_pokedex = [poke for poke in owner_node["pokedex"] if
+                                    poke["Name"].lower().startswith(starting_letters)]
+            case 6:
+                filtered_pokedex = owner_node["pokedex"]
+            case 7:
+                print("Back to Pokedex Menu.")
+                return
+            case _:
+                print("Invalid choice. Please try again.")
+                continue
+
+        if not filtered_pokedex:
+            print("There are no Pokemons in this Pokedex that match the criteria.")
+        else:
+            display_pokemon_list(filtered_pokedex)
     pass
 
 
@@ -305,7 +366,7 @@ def existing_pokedex():
         return
     choice = 0
     while choice != 5:
-        print(f"-- '{existing_owner["name"]}'s Pokedex Menu --")
+        print(f"-- {existing_owner["name"]}'s Pokedex Menu --")
         print("1. Add Pokemon"
               "\n2. Display Pokedex"
               "\n3. Release Pokemon"
@@ -315,6 +376,10 @@ def existing_pokedex():
         match choice:
             case 1:
                 add_pokemon_to_owner(existing_owner)
+            case 2:
+                display_filter_sub_menu(existing_owner)
+            case 3:
+                release_pokemon_by_name(existing_owner)
 
 
 
@@ -344,7 +409,7 @@ def main_menu():
     choice = 0
     while choice != 6:
         print("""
-    Main menu for:
+    === Main Menu ===
     1) New Pokedex
     2) Existing Pokedex
     3) Delete a Pokedex
@@ -352,7 +417,7 @@ def main_menu():
     5) Print all
     6) Exit
     """)
-        choice = int(input("Enter your choice: "))
+        choice = int(input("Your choice: "))
         match choice:
             case 1:
                 print(ownerRoot)
