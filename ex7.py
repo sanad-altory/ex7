@@ -156,7 +156,16 @@ def find_owner_bst(root, owner_name):
     return None
     pass
 
+def find_parent(root,owner_name):
+    if root is None:
+        return None
 
+    # Perform case-insensitive comparison (lowercase the names for comparison)
+        if root["left"][]
+
+
+    return None
+    pass
 def min_node(node):
     """
     Return the leftmost node in a BST subtree.
@@ -168,6 +177,13 @@ def delete_owner_bst(root, owner_name):
     """
     Remove a node from the BST by owner_name. Return updated root.
     """
+    deleted_node = find_owner_bst(root, owner_name)
+    if deleted_node is None:
+        print(f"No owner named '{owner_name}' found.")
+        return root
+    elif deleted_node["left"] is None and deleted_node["right"] is None:
+        deleted_node_parent = find_owner_bst(root, deleted_node["name"])
+        deleted_node_parent["left"] = None
     pass
 
 
@@ -228,6 +244,13 @@ def release_pokemon_by_name(owner_node):
     """
     Prompt user for a Pokemon name, remove it from this owner's pokedex if found.
     """
+    name_to_release = input("Enter Pokemon name to release: ").strip().lower()
+    for poke in owner_node["pokedex"]:
+        if poke["Name"].strip().lower() == name_to_release:
+            owner_node["pokedex"].remove(poke)
+            print(f"Pokemon {poke['Name']} has been released from {owner_node['name']}'s Pokedex.")
+            return
+    print(f"No Pokemon named '{name_to_release}'in {owner_node['name']}'s Pokedex.")
 
     pass
 
@@ -240,6 +263,39 @@ def evolve_pokemon_by_name(owner_node):
     3) Insert new
     4) If new is a duplicate, remove it immediately
     """
+    name_to_evolve = input("Enter Pokemon name to evolve: ").strip().lower()
+
+    # Find the Pokemon to evolve in the owner's Pokedex
+    for poke in owner_node["pokedex"]:
+        if poke["Name"].strip().lower() == name_to_evolve:
+            if poke["Can Evolve"] == "FALSE":
+                print(f"Pokemon {poke['Name']} cannot evolve.")
+                return
+            # Find the evolved Pokemon in Hoenn data
+            evolution_id = poke["ID"] + 1  # Assuming evolution is the next ID
+            evolved_poke = get_poke_dict_by_id(evolution_id)
+
+            if not evolved_poke:
+                print(f"No evolution found for Pokemon {poke['Name']} (ID {poke['ID']}).")
+                return
+
+            # Remove the original Pokemon
+            owner_node["pokedex"].remove(poke)
+
+            # Check if the evolved Pokemon already exists
+            for existing_pokemon in owner_node["pokedex"]:
+                if existing_pokemon["ID"] == evolved_poke["ID"]:
+                    print(
+                        f"Pokemon evolved from {poke['Name']} (ID {poke['ID']}) to {evolved_poke['Name']} (ID {evolved_poke['ID']}).")
+                    print(f"{evolved_poke['Name']} was already present; releasing it immediately.")
+                    return
+            # Add the evolved Pokemon
+            owner_node["pokedex"].append(evolved_poke)
+            print(
+                f"Pokemon evolved from {poke['Name']} (ID {poke['ID']}) to {evolved_poke['Name']} (ID {evolved_poke['ID']}).")
+            return
+    # If Pokemon not found
+    print(f"No Pokemon named '{name_to_evolve}' found in {owner_node['name']}'s Pokedex.")
     pass
 
 
@@ -380,6 +436,8 @@ def existing_pokedex():
                 display_filter_sub_menu(existing_owner)
             case 3:
                 release_pokemon_by_name(existing_owner)
+            case 4:
+                evolve_pokemon_by_name(existing_owner)
 
 
 
@@ -437,8 +495,8 @@ def main_menu():
 
             case 2:
                 existing_pokedex()
-            # case 3:
-            #     delete_pokedex()
+            case 3:
+                delete_owner_bst(ownerRoot, input("Owner name: ").strip().lower())
             # case 4:
             #     sort_owners()
             # case 5:
